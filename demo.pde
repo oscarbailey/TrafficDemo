@@ -51,6 +51,10 @@ class Car{
   void advance(float amt){
     p += amt;
   }
+
+  int getPriority(){
+    return pow(waitTime, 2);
+  }
 }
 
 // CLASS - Route
@@ -82,6 +86,48 @@ class Route{
   
   void addCar(){
     carsQueue.add(new Car());
+  }
+
+  int getPriority(){
+    // Returns total wait time
+    int total = 0;
+    int n = carsQueue.size();
+    for(int i=0; i<n; i++){
+      Car c = carsQueue.get(i);
+      total += c.waitTime;
+    }
+    return total;
+  }
+
+  int getPriority2(){
+    // Returns highest wait time
+    int highest = 0;
+    int n = carsQueue.size();
+    for(int i=0; i<n; i++){
+      Car c = carsQueue.get(i);
+
+      if(c.waitTime > highest) {
+        highest = c.waitTime;
+      }
+    }
+    return highest;
+  }
+
+  int getPriority3(){
+    // Wait time altered in some way before being used here
+    // This function evaluates the product of (wait time squared)
+    int total = 0;
+    int n = carsQueue.size();
+    for(int i=0; i<n; i++){
+      Car c = carsQueue.get(i);
+      total *= c.getPriority();
+    }
+    return total;
+  }
+
+  int getPriority4(){
+    // Returns just the number of cars
+    return carsQueue.size();
   }
   
   void tick(){
