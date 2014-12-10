@@ -5,7 +5,7 @@
 // CONSTANTS - GRAPHICS
 static int constFrameRate = 30;
 static int constResX = 720;
-static int constResY = 405;
+static int constResY = 720;
 
 // CONSTANTS - SYSTEM
 static int constNumPatterns = 11;
