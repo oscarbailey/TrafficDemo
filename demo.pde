@@ -10,6 +10,7 @@ static int constResY = 405;
 // CONSTANTS - SYSTEM
 static int constNumPatterns = 11;
 static float constAdvanceRate = 1/60;
+static float constQueueSeperation = 0.025;
 
 // CONSTANTS - MATH
 static float MATH_E = 2.71828182845904523536028747135266249775724709369995;
@@ -73,6 +74,8 @@ class Route{
     } else {                 // RIGHT TURN
       points = new Point[4];
     }
+    
+    pQueue = points[1].p;    // SET INTIAIL Q POINT TO EDGE OF APPROACH
   }
   
   void addCar(){
@@ -80,17 +83,17 @@ class Route{
   }
   
   void tick(){
-    pQueue = 0;      // QUEUE POINT
+    pQueue = points[1].p - (cars.size() * constQueueSeperation);      // QUEUE POINT
     
     for (int i = 0; i < cars.size(); i++){
-      Car c = cars.get(i);  
+      Car c = cars.get(i);
       
-      if (c.p < points[1].p){    // APPROACHING
+      if (enabled || c.p > points[1].p){
+        c.advance(constAdvanceRate);
+      } else {
         if (c.p < pQueue){
           c.advance(constAdvanceRate);
         }
-      } else{                    // PAST APPROACH LINE
-        c.advance(constAdvanceRate);
       }
     }
   }
@@ -100,6 +103,15 @@ class Route{
       Car c = cars.get(i);
       image(imgCar, 0, 0);
     }
+  }
+  
+  void checkDestroyCars(){
+     for (int i = 0; i < cars.size(); i++){
+       Car c = cars.get(i);
+       if (c.p > 1){
+         cars.remove(i);
+       }
+     } 
   }
 }
 
