@@ -1,3 +1,7 @@
+// =====================================================
+//   CONSTANTS
+// =====================================================
+
 // CONSTANTS - GRAPHICS
 static int constFrameRate = 30;
 static int constResX = 720;
@@ -5,9 +9,21 @@ static int constResY = 405;
 
 // CONSTANTS - SYSTEM
 static int constNumPatterns = 11;
+static float constAdvanceRate = 1/60;
+
+// CONSTANTS - MATH
+static float MATH_E = 2.71828182845904523536028747135266249775724709369995;
+
+// =====================================================
+//   GLOBAL OBJECTS
+// =====================================================
 
 // OBJECTS - IMAGES
 PImage imgCar, imgRoad, imgPatterns[];
+
+// =====================================================
+//   CLASSES
+// =====================================================
 
 // CLASS - Point
 class Point{
@@ -67,24 +83,48 @@ class Route{
     pQueue = 0;      // QUEUE POINT
     
     for (int i = 0; i < cars.size(); i++){
-      car c = cars.get(i);  
+      Car c = cars.get(i);  
       
       if (c.p < points[1].p){    // APPROACHING
         if (c.p < pQueue){
-          c.advance();
+          c.advance(constAdvanceRate);
         }
       } else{                    // PAST APPROACH LINE
-        c.advance();
+        c.advance(constAdvanceRate);
       }
     }
   }
   
   void draw(){
     for (int i = 0; i < cars.size(); i++){
-      car c = cars.get(i);
-      image(imgCar, c.x, c.y);
+      Car c = cars.get(i);
+      image(imgCar, 0, 0);
     }
   }
+}
+
+// =====================================================
+//   FUNCTIONS
+// =====================================================
+
+// Get number of cars
+int get_cars(float expected){
+  float test = random(1);
+  float total = 0;
+  int k;
+  for(k=0; test > total; k++) {
+    total += ( pow(expected, parseFloat(k)) * pow(MATH_E, -expected) ) / fac(k);
+  }
+  return k-1;
+}
+
+// Fac for get_car
+int fac(int n) {
+  int total = 1;
+  for(int i=2; i<=n; i++){
+    total *= i;
+  }
+  return total;
 }
 
 // Interp function
