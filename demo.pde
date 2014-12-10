@@ -56,13 +56,15 @@ class Car{
 // CLASS - Route
 class Route{
   Point points[];
-  ArrayList<Car> cars;
+  ArrayList<Car> carsQueue;
+  ArrayList<Car> carsDone;
   boolean enabled;
   float pQueue;        // PROGRESS POINT AT WHICH CAR MUST QUEUE
   
   Route(int turn, int side){
     enabled = false;
-    cars = new ArrayList<Car>();
+    carsQueue = new ArrayList<Car>();
+    carsDone = new ArrayList<Car>();
     
     // TURNS - 0 = left, 1 = straight, 2 = right
     // SIDES - 0 = left, 1 = top, 2 = right, 3 = bottom
@@ -79,16 +81,16 @@ class Route{
   }
   
   void addCar(){
-    cars.add(new Car());
+    carsQueue.add(new Car());
   }
   
   void tick(){
-    pQueue = points[1].p - (cars.size() * constQueueSeperation);      // QUEUE POINT
+    pQueue = points[1].p - (carsQueue.size() * constQueueSeperation);      // QUEUE POINT
     
-    for (int i = 0; i < cars.size(); i++){
-      Car c = cars.get(i);
+    for (int i = 0; i < carsQueue.size(); i++){
+      Car c = carsQueue.get(i);
       
-      if (enabled || c.p > points[1].p){
+      if (enabled){
         c.advance(constAdvanceRate);
       } else {
         if (c.p < pQueue){
@@ -96,20 +98,38 @@ class Route{
         }
       }
     }
-  }
-  
-  void draw(){
-    for (int i = 0; i < cars.size(); i++){
-      Car c = cars.get(i);
-      image(imgCar, 0, 0);
+    
+    for (int i = 0; i < carsDone.size(); i++){
+      Car c = carsDone.get(i);
+      c.advance(constAdvanceRate);
     }
   }
   
-  void checkDestroyCars(){
-     for (int i = 0; i < cars.size(); i++){
-       Car c = cars.get(i);
+  void draw(){
+    for (int i = 0; i < carsQueue.size(); i++){
+      Car c = carsQueue.get(i);
+      image(imgCar, 0, 0);
+    }
+    
+    for (int i = 0; i < carsDone.size(); i++){
+      Car c = carsDone.get(i);
+      c.advance(constAdvanceRate);
+    }
+  }
+  
+  void checkCars(){
+     for (int i = 0; i < carsQueue.size(); i++){
+       Car c = carsQueue.get(i);
+       if (c.p >= points[1].p){
+         carsDone.add(c);
+         carsQueue.remove(i);
+       }
+     }
+  
+     for (int i = 0; i < carsDone.size(); i++){
+       Car c = carsDone.get(i);
        if (c.p > 1){
-         cars.remove(i);
+         carsDone.remove(i);
        }
      } 
   }
