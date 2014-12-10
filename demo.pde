@@ -53,7 +53,7 @@ class Car{
   }
 
   int getPriority(){
-    return pow(waitTime, 2);
+    return parseInt( pow(waitTime, 2) );
   }
 }
 
