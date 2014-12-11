@@ -22,6 +22,9 @@ static float MATH_E = 2.71828182845904523536028747135266249775724709369995;
 // OBJECTS - IMAGES
 PImage imgCar, imgRoad, imgPatterns[];
 
+// OBJECTS - ROUTES
+Route r;
+
 // =====================================================
 //   CLASSES
 // =====================================================
@@ -30,12 +33,12 @@ PImage imgCar, imgRoad, imgPatterns[];
 class Point{
   int x, y;
   float p;
- 
+  
   Point(){
     x = 0;
     y = 0;
     p = 0;
-  } 
+  }
 }
 
 // CLASS - Car
@@ -59,11 +62,12 @@ class Car{
 
 // CLASS - Route
 class Route{
-  Point points[];
+  Point[] points;
   ArrayList<Car> carsQueue;
   ArrayList<Car> carsDone;
   boolean enabled;
-  float pQueue;        // PROGRESS POINT AT WHICH CAR MUST QUEUE
+  float pQueue;        // PROGRESS POINT AT WHICH CAR MUST QUEUE#
+  int side;
   
   Route(int turn, int side){
     enabled = false;
@@ -72,13 +76,29 @@ class Route{
     
     // TURNS - 0 = left, 1 = straight, 2 = right
     // SIDES - 0 = left, 1 = top, 2 = right, 3 = bottom
+    // Turn is computed, side affects draw rotation
     
     if (turn == 0){          // LEFT TURN
       points = new Point[4];
+      points[0] = new Point(); points[0].x = 0; points[0].y = 270;
+      points[1] = new Point(); points[1].x = 247; points[1].y = 270;
+      points[2] = new Point(); points[2].x = 307; points[2].y = 270;
+      points[3] = new Point(); points[3].x = 307; points[3].y = 0;
     } else if (turn == 1){   // STRAIGHT ON
       points = new Point[3];
+      points[0] = new Point(); points[0].x = 0; points[0].y = 305;
+      points[1] = new Point(); points[1].x = 247; points[1].y = 305;
+      points[2] = new Point(); points[2].x = 720; points[2].y = 305;
     } else {                 // RIGHT TURN
       points = new Point[4];
+      points[0] = new Point(); points[0].x = 0; points[0].y = 341;
+      points[1] = new Point(); points[1].x = 247; points[1].y = 341;
+      points[2] = new Point(); points[2].x = 414; points[2].y = 341;
+      points[3] = new Point(); points[3].x = 414; points[3].y = 720;
+    }
+    
+    for (int i = 0; i < points.length; i++){
+      points[i].p = i * (1 / points.length);
     }
     
     pQueue = points[1].p;    // SET INTIAIL Q POINT TO EDGE OF APPROACH
@@ -131,7 +151,7 @@ class Route{
   }
   
   void tick(){
-    pQueue = points[1].p - (carsQueue.size() * constQueueSeperation);      // QUEUE POINT
+    pQueue = points[1].p - ((carsQueue.size()-1) * constQueueSeperation);      // QUEUE POINT
     
     for (int i = 0; i < carsQueue.size(); i++){
       Car c = carsQueue.get(i);
@@ -139,6 +159,7 @@ class Route{
       if (enabled){
         c.advance(constAdvanceRate);
       } else {
+        c.waitTime++;
         if (c.p < pQueue){
           c.advance(constAdvanceRate);
         }
@@ -152,10 +173,14 @@ class Route{
   }
   
   void draw(){
+    println("Drawing " + carsQueue.size());
+    pushMatrix();
+    rotate(side*90);
     for (int i = 0; i < carsQueue.size(); i++){
       Car c = carsQueue.get(i);
       image(imgCar, 0, 0);
     }
+    popMatrix();
     
     for (int i = 0; i < carsDone.size(); i++){
       Car c = carsDone.get(i);
@@ -177,7 +202,7 @@ class Route{
        if (c.p > 1){
          carsDone.remove(i);
        }
-     } 
+     }
   }
 }
 
@@ -223,10 +248,15 @@ void setup(){
   for (int i = 0; i < constNumPatterns; i++){
     imgPatterns[i] = loadImage("p_" + nf(i, 2) + ".png");
   }
+  
+  r = new Route(1, 0);
+  r.addCar();
 }
 
 // Draw function
 void draw(){
+   r.tick();
    image(imgRoad, 0, 0);
+   r.draw();
 }
 
