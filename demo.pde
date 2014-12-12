@@ -9,7 +9,7 @@ static int constResY = 720;
 
 // CONSTANTS - SYSTEM
 static int constNumPatterns = 11;
-static float constAdvanceRate = 1/60;
+static float constAdvanceRate = 0.01;
 static float constQueueSeperation = 0.025;
 
 // CONSTANTS - MATH
@@ -24,6 +24,11 @@ PImage imgCar, imgRoad, imgPatterns[];
 
 // OBJECTS - ROUTES
 Route r;
+
+// Interp function
+int interp(int start, int end, float p){
+   return start + ceil((end - start) * p);
+}
 
 // =====================================================
 //   CLASSES
@@ -43,16 +48,14 @@ class Point{
 
 // CLASS - Car
 class Car{
-  int waitTime;
+  int x, y, waitTime;
   float p;
   
   Car(){
+    x = 0;
+    y = 0;
     waitTime = 0;
     p = 0;
-  }
-  
-  void advance(float amt){
-    p += amt;
   }
 
   int getPriority(){
@@ -98,10 +101,25 @@ class Route{
     }
     
     for (int i = 0; i < points.length; i++){
-      points[i].p = i * (1 / points.length);
+      points[i].p = i * (1.0 / points.length);
     }
     
-    pQueue = points[1].p;    // SET INTIAIL Q POINT TO EDGE OF APPROACH
+    pQueue = points[1].p;    // SET INITIAL Q POINT TO EDGE OF APPROACH
+  }
+  
+  void setCarPos(Car c){
+    
+    int point = 1;
+    for (int i = 1; i < points.length; i++){
+       if (c.p < points[i].p){
+          point = i;
+          break;
+       }
+    }
+   
+    c.x = interp(points[point-1].x, points[point].x, (c.p-points[point-1].p)/(points[point].p - points[point-1].p));
+    c.y = interp(points[point-1].y, points[point].y, (c.p-points[point-1].p)/(points[point].p - points[point-1].p));
+    
   }
   
   void addCar(){
@@ -151,41 +169,44 @@ class Route{
   }
   
   void tick(){
-    pQueue = points[1].p - ((carsQueue.size()-1) * constQueueSeperation);      // QUEUE POINT
+    // pQueue = points[1].p - ((carsQueue.size()-1) * constQueueSeperation);      // QUEUE POINT
     
     for (int i = 0; i < carsQueue.size(); i++){
       Car c = carsQueue.get(i);
       
       if (enabled){
-        c.advance(constAdvanceRate);
+        println("c.p=" + c.p);
+        c.p += constAdvanceRate;
+        println("c.p'=" + c.p);
       } else {
         c.waitTime++;
+        pQueue = points[1].p - (i*constQueueSeperation);
         if (c.p < pQueue){
-          c.advance(constAdvanceRate);
+          c.p += constAdvanceRate;
         }
       }
     }
     
     for (int i = 0; i < carsDone.size(); i++){
       Car c = carsDone.get(i);
-      c.advance(constAdvanceRate);
+      c.p += constAdvanceRate;
     }
   }
   
   void draw(){
-    println("Drawing " + carsQueue.size());
     pushMatrix();
     rotate(side*90);
     for (int i = 0; i < carsQueue.size(); i++){
       Car c = carsQueue.get(i);
-      image(imgCar, 0, 0);
+      setCarPos(c);
+      image(imgCar, c.x-8, c.y-8);
+    }
+    for (int i = 0 ; i < carsDone.size(); i++){
+       Car c = carsDone.get(i);
+       setCarPos(c);
+       image(imgCar, c.x-8, c.y-8); 
     }
     popMatrix();
-    
-    for (int i = 0; i < carsDone.size(); i++){
-      Car c = carsDone.get(i);
-      c.advance(constAdvanceRate);
-    }
   }
   
   void checkCars(){
@@ -230,11 +251,6 @@ int fac(int n) {
   return total;
 }
 
-// Interp function
-int Interp(int start, int end, float p){
-   return start + ceil((end - start) * p);
-}
-
 // Setup function
 void setup(){
   size(constResX, constResY);
@@ -249,12 +265,17 @@ void setup(){
     imgPatterns[i] = loadImage("p_" + nf(i, 2) + ".png");
   }
   
-  r = new Route(1, 0);
+  r = new Route(2, 0);
   r.addCar();
+  r.enabled = false;
 }
 
 // Draw function
 void draw(){
+   if (keyPressed){
+     r.addCar();
+   }
+  
    r.tick();
    image(imgRoad, 0, 0);
    r.draw();
