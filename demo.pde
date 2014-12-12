@@ -23,7 +23,11 @@ static float MATH_E = 2.71828182845904523536028747135266249775724709369995;
 PImage imgCar, imgRoad, imgPatterns[];
 
 // OBJECTS - ROUTES
-Route r;
+Route r[];
+
+// =====================================================
+//   MATHS FUNCTIONS
+// =====================================================
 
 // Interp function
 int interp(int start, int end, float p){
@@ -57,7 +61,7 @@ class Car{
     waitTime = 0;
     p = 0;
   }
-
+  
   int getPriority(){
     return parseInt( pow(waitTime, 2) );
   }
@@ -72,8 +76,9 @@ class Route{
   float pQueue;        // PROGRESS POINT AT WHICH CAR MUST QUEUE#
   int side;
   
-  Route(int turn, int side){
+  Route(int turn, int rot){
     enabled = false;
+    side = rot;
     carsQueue = new ArrayList<Car>();
     carsDone = new ArrayList<Car>();
     
@@ -194,8 +199,6 @@ class Route{
   }
   
   void draw(){
-    pushMatrix();
-    rotate(side*90);
     for (int i = 0; i < carsQueue.size(); i++){
       Car c = carsQueue.get(i);
       setCarPos(c);
@@ -206,7 +209,7 @@ class Route{
        setCarPos(c);
        image(imgCar, c.x-8, c.y-8); 
     }
-    popMatrix();
+    rotate(side*-90);
   }
   
   void checkCars(){
@@ -265,19 +268,33 @@ void setup(){
     imgPatterns[i] = loadImage("p_" + nf(i, 2) + ".png");
   }
   
-  r = new Route(2, 0);
-  r.addCar();
-  r.enabled = false;
+  r = new Route[12];
+ 
+  r[0] = new Route(0, 0);
+  r[1] = new Route(1, 0);
+  r[2] = new Route(2, 0);
+  
+  r[3] = new Route(0, 1);
+  r[4] = new Route(1, 1);
+  r[5] = new Route(2, 1);
+  
+  r[6] = new Route(0, 2);
+  r[7] = new Route(1, 2);
+  r[8] = new Route(2, 2);
+  
+  r[9] = new Route(0, 3);
+  r[10] = new Route(1, 3);
+  r[11] = new Route(2, 3);
+  
 }
 
 // Draw function
 void draw(){
-   if (keyPressed){
-     r.addCar();
-   }
-  
-   r.tick();
    image(imgRoad, 0, 0);
-   r.draw();
+   
+   for (int i = 0; i < 12; i++){
+     r[i].tick();
+     r[i].draw();
+   }
 }
 
