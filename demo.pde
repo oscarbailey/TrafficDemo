@@ -16,6 +16,12 @@ static float constQueueSeperation = 0.025;
 static float MATH_E = 2.71828182845904523536028747135266249775724709369995;
 
 // =====================================================
+//   GLOBAL VARIABLES
+// =====================================================
+
+int priorityCalc = 1;
+
+// =====================================================
 //   GLOBAL OBJECTS
 // =====================================================
 
@@ -131,7 +137,7 @@ class Route{
     carsQueue.add(new Car());
   }
 
-  int getPriority(){
+  int getPriority1(){
     // Returns total wait time
     int total = 0;
     int n = carsQueue.size();
@@ -234,7 +240,7 @@ class Pattern{
   Route[] routes;
   int priority;
 
-  Pattern(int patternid) {
+  Pattern(int patternid, Route[][] globalRoutes) {
     routes = new Route[4];
     // SIDES - 0 = left, 1 = top, 2 = right, 3 = bottom
     int[][] patterns = {{01,02,20,23},
@@ -254,7 +260,7 @@ class Pattern{
       int turn = pattern[i];
       int[] rotated = routeRotate(turn, rotation);
       println(str(rotated));
-      routes[i] = new Route(rotated[0], rotated[1]);
+      routes[i] = globalRoutes[ rotated[0] ][ rotated[1] ];
     }
     println("---------");
   }
@@ -272,6 +278,48 @@ class Pattern{
     return decode(to + from);
   }
 
+  int getPriority(){
+    int total = 0;
+    for(Route route : routes){
+      switch(priorityCalc) {
+        case 1:
+          total += route.getPriority1();
+          break;
+        case 2:
+          total += route.getPriority2();
+          break;
+        case 3:
+          total += route.getPriority3();
+          break;
+        case 4:
+          total += route.getPriority4();
+          break;
+      }
+      
+    }
+    return total;
+  }
+}
+
+class Junction{
+  Pattern[] patterns;
+  Route[][] routes;
+
+  Junction() {
+    // Setup Routes
+    routes = new Route[4][4];
+    for(int i=0; i<4; i++) {
+      for(int j=0; j<4; j++) {
+        routes[i][j] = new Route(i, j);
+      }
+    }
+
+    patterns = new Pattern[11];
+    for(int i=0; i<11; i++) {
+      patterns[i] = new Pattern(i, routes);
+    }
+
+  }
 }
 
 // =====================================================
@@ -310,11 +358,6 @@ void setup(){
   imgPatterns = new PImage[constNumPatterns];
   for (int i = 0; i < constNumPatterns; i++){
     imgPatterns[i] = loadImage("p_" + nf(i, 2) + ".png");
-  }
-
-  Pattern[] patterns = new Pattern[11];
-  for(int i=0; i<11; i++) {
-    patterns[i] = new Pattern(i);
   }
   
   r = new Route[12];
