@@ -322,11 +322,19 @@ class Pattern{
     }
     return total;
   }
+
+  void tick(){
+    for(Route route : routes) {
+      route.tick();
+    }
+  }
 }
 
 class Junction{
   Pattern[] patterns;
   Route[][] routes;
+  Boolean enabled;
+  int timerDisabled;
 
   Junction() {
     // Setup Routes
@@ -337,11 +345,20 @@ class Junction{
       }
     }
 
+    // Setup patterns
     patterns = new Pattern[11];
     for(int i=0; i<11; i++) {
       patterns[i] = new Pattern(i, routes);
     }
 
+    enabled = false;
+    timerDisabled = 2 * constFrameRate;
+  }
+
+  void tick() {
+    if(enabled) {
+      if(timerDisabled > 0)
+    }
   }
 }
 
