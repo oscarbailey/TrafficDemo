@@ -16,6 +16,12 @@ static float constQueueSeperation = 0.025;
 static float MATH_E = 2.71828182845904523536028747135266249775724709369995;
 
 // =====================================================
+//   GLOBAL VARIABLES
+// =====================================================
+
+int priorityCalc = 1;
+
+// =====================================================
 //   GLOBAL OBJECTS
 // =====================================================
 
@@ -155,7 +161,7 @@ class Route{
     carsQueue.add(new Car());
   }
 
-  int getPriority(){
+  int getPriority1(){
     // Returns total wait time
     int total = 0;
     int n = carsQueue.size();
@@ -250,6 +256,92 @@ class Route{
          carsDone.remove(i);
        }
      }
+  }
+}
+
+class Pattern{
+  Route[] routes;
+  int priority;
+
+  Pattern(int patternid, Route[][] globalRoutes) {
+    routes = new Route[4];
+    // SIDES - 0 = left, 1 = top, 2 = right, 3 = bottom
+    int[][] patterns = {{01,02,20,23},
+                        {01,03,12,30},
+                        {01,12,23,30},
+                        {01,02,03,30}};
+    // xy
+    // x = Pattern index
+    // y = Rotation
+    int[] possiblePatterns = {00,01,10,11,12,13,20,30,31,32,33};
+    int patternCode = possiblePatterns[patternid];
+    int[] pd = decode(patternCode);
+    int[] pattern = patterns[ pd[0] ];
+    int rotation = pd[1];
+
+    for(int i=0; i<4; i++) {
+      int turn = pattern[i];
+      int[] rotated = routeRotate(turn, rotation);
+      println(str(rotated));
+      routes[i] = globalRoutes[ rotated[0] ][ rotated[1] ];
+    }
+    println("---------");
+  }
+
+  int[] decode(int turn){
+    int[] returnVal = new int[2];
+    returnVal[1] = turn % 10;
+    returnVal[0] = (turn - returnVal[1]) / 10;
+    return returnVal;
+  }
+
+  int[] routeRotate(int code, int rotation) {
+    int to = ((code % 10) + rotation) % 4;
+    int from = ((code - (code%10)) + (10*rotation)) % 40;
+    return decode(to + from);
+  }
+
+  int getPriority(){
+    int total = 0;
+    for(Route route : routes){
+      switch(priorityCalc) {
+        case 1:
+          total += route.getPriority1();
+          break;
+        case 2:
+          total += route.getPriority2();
+          break;
+        case 3:
+          total += route.getPriority3();
+          break;
+        case 4:
+          total += route.getPriority4();
+          break;
+      }
+      
+    }
+    return total;
+  }
+}
+
+class Junction{
+  Pattern[] patterns;
+  Route[][] routes;
+
+  Junction() {
+    // Setup Routes
+    routes = new Route[4][4];
+    for(int i=0; i<4; i++) {
+      for(int j=0; j<4; j++) {
+        routes[i][j] = new Route(i, j);
+      }
+    }
+
+    patterns = new Pattern[11];
+    for(int i=0; i<11; i++) {
+      patterns[i] = new Pattern(i, routes);
+    }
+
   }
 }
 
