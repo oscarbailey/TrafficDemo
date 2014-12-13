@@ -71,6 +71,26 @@ class Car{
   int getPriority(){
     return parseInt( pow(waitTime, 2) );
   }
+  
+  void r90c(){
+     int tx, ty;
+     int newx, newy;
+    
+     tx = x - 360;
+     ty = y - 360;
+    
+     newx = 360 + ty;
+     newy = 360 - tx; 
+     
+     x = newx;
+     y = newy;
+     
+     println("ROTATED: x=" + newx + " y=" + newy);
+  }
+  
+  void draw(){
+    image(imgCar, x-8, y-8);
+  }
 }
 
 // CLASS - Route
@@ -99,10 +119,11 @@ class Route{
       points[2] = new Point(); points[2].x = 307; points[2].y = 270;
       points[3] = new Point(); points[3].x = 307; points[3].y = 0;
     } else if (turn == 1){   // STRAIGHT ON
-      points = new Point[3];
+      points = new Point[4];
       points[0] = new Point(); points[0].x = 0; points[0].y = 305;
       points[1] = new Point(); points[1].x = 247; points[1].y = 305;
-      points[2] = new Point(); points[2].x = 720; points[2].y = 305;
+      points[2] = new Point(); points[2].x = 500; points[2].y = 305;
+      points[3] = new Point(); points[3].x = 720; points[3].y = 305;
     } else {                 // RIGHT TURN
       points = new Point[4];
       points[0] = new Point(); points[0].x = 0; points[0].y = 341;
@@ -131,6 +152,9 @@ class Route{
     c.x = interp(points[point-1].x, points[point].x, (c.p-points[point-1].p)/(points[point].p - points[point-1].p));
     c.y = interp(points[point-1].y, points[point].y, (c.p-points[point-1].p)/(points[point].p - points[point-1].p));
     
+    for (int i = 1; i < side+1; i++){
+      c.r90c();
+    }
   }
   
   void addCar(){
@@ -186,12 +210,10 @@ class Route{
       Car c = carsQueue.get(i);
       
       if (enabled){
-        println("c.p=" + c.p);
         c.p += constAdvanceRate;
-        println("c.p'=" + c.p);
       } else {
         c.waitTime++;
-        pQueue = points[1].p - (i*constQueueSeperation);
+        pQueue = points[1].p - (i*constQueueSeperation) - 0.02;
         if (c.p < pQueue){
           c.p += constAdvanceRate;
         }
@@ -202,20 +224,21 @@ class Route{
       Car c = carsDone.get(i);
       c.p += constAdvanceRate;
     }
+    
+    checkCars();
   }
   
   void draw(){
     for (int i = 0; i < carsQueue.size(); i++){
       Car c = carsQueue.get(i);
       setCarPos(c);
-      image(imgCar, c.x-8, c.y-8);
+      c.draw();
     }
     for (int i = 0 ; i < carsDone.size(); i++){
        Car c = carsDone.get(i);
        setCarPos(c);
-       image(imgCar, c.x-8, c.y-8); 
+       c.draw();
     }
-    rotate(side*-90);
   }
   
   void checkCars(){
@@ -376,13 +399,18 @@ void setup(){
   
   r[9] = new Route(0, 3);
   r[10] = new Route(1, 3);
-  r[11] = new Route(2, 3);
-  
+  r[11] = new Route(2, 3); 
 }
 
 // Draw function
 void draw(){
    image(imgRoad, 0, 0);
+  
+  if (keyPressed){
+  for (int i = 0 ; i < 12; i++){
+     r[i].addCar();
+  }
+  }
    
    for (int i = 0; i < 12; i++){
      r[i].tick();
