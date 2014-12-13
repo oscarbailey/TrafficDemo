@@ -281,10 +281,8 @@ class Pattern{
     for(int i=0; i<4; i++) {
       int turn = pattern[i];
       int[] rotated = routeRotate(turn, rotation);
-      println(str(rotated));
       routes[i] = globalRoutes[ rotated[0] ][ rotated[1] ];
     }
-    println("---------");
   }
 
   int[] decode(int turn){
@@ -340,7 +338,6 @@ class Junction{
     for(int i=0; i<11; i++) {
       patterns[i] = new Pattern(i, routes);
     }
-
   }
 }
 
