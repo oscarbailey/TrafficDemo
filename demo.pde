@@ -78,12 +78,11 @@ class Car{
      
      x = newx;
      y = newy;
-     
-     println("ROTATED: x=" + newx + " y=" + newy);
   }
   
   void draw(){
     image(imgCar, x-8, y-8);
+    println(waitTime);
   }
 }
 
@@ -97,7 +96,7 @@ class Route{
   int side;
   
   Route(int turn, int rot){
-    enabled = false;
+    enabled = true;
     side = rot;
     carsQueue = new ArrayList<Car>();
     carsDone = new ArrayList<Car>();
@@ -287,6 +286,7 @@ void setup(){
   imgCar = loadImage("car.png");
   imgRoad = loadImage("road.png");
   imgPatterns = new PImage[constNumPatterns];
+  
   for (int i = 0; i < constNumPatterns; i++){
     imgPatterns[i] = loadImage("p_" + nf(i, 2) + ".png");
   }
