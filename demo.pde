@@ -21,7 +21,7 @@ static float MATH_E = 2.71828182845904523536028747135266249775724709369995;
 //   GLOBAL VARIABLES
 // =====================================================
 
-int priorityCalc = 1;
+int priorityCalc = 4;
 Boolean priorityFixed = true;
 
 // =====================================================
@@ -91,7 +91,7 @@ class Car{
   
   void draw(){
     image(imgCar, x-8, y-8);
-    println(waitTime);
+    //println(waitTime);
   }
 }
 
@@ -248,6 +248,7 @@ class Route{
        setCarPos(c);
        c.draw();
     }
+
   }
   
   void checkCars(){
@@ -270,6 +271,7 @@ class Route{
 
 class Pattern{
   Route[] routes;
+  String[] routePrint;
   int priority;
   Boolean enabled;
 
@@ -277,23 +279,30 @@ class Pattern{
     enabled = false;
     routes = new Route[4];
     // SIDES - 0 = left, 1 = top, 2 = right, 3 = bottom
+    // From X to Y
     int[][] patterns = {{01,02,20,23},
                         {01,03,12,30},
                         {01,12,23,30},
                         {01,02,03,30}};
     // xy
     // x = Pattern index
-    // y = Rotation
+    // y = Rotation / 90
     int[] possiblePatterns = {00,01,10,11,12,13,20,30,31,32,33};
     int patternCode = possiblePatterns[patternid];
     int[] pd = decode(patternCode);
     int[] pattern = patterns[ pd[0] ];
     int rotation = pd[1];
 
+    routePrint = new String[4];
+
     for(int i=0; i<4; i++) {
       int turn = pattern[i];
       int[] rotated = routeRotate(turn, rotation);
-      routes[i] = globalRoutes[ rotated[0] ][ rotated[1] ];
+      int a = ((rotated[1] - rotated[0]) % 4) - 1;
+      if(a<0) a+=4;
+      int b = rotated[0];
+      routePrint[i] = str(a) + str(b);
+      routes[i] = globalRoutes[a][b];
     }
   }
 
@@ -329,7 +338,16 @@ class Pattern{
       }
       
     }
+    print(str(total));
     return total;
+  }
+
+  void printPattern() {
+    for(int i=0; i<4; i++) {
+      print(routePrint[i]);
+      print(" ");
+    }
+    println("------");
   }
 
   void tick(){
@@ -349,8 +367,8 @@ class Junction{
 
   Junction() {
     // Setup Routes
-    routes = new Route[4][4];
-    for(int i=0; i<4; i++) {
+    routes = new Route[3][4];
+    for(int i=0; i<3; i++) {
       for(int j=0; j<4; j++) {
         routes[i][j] = new Route(i, j);
       }
@@ -369,12 +387,17 @@ class Junction{
   }
 
   void tick() {
+    for(int i=0; i<3; i++) {
+      for(int j=0; j<4; j++) {
+        routes[i][j].draw();
+      }
+    }
+    
     if(enabled) {
 
-      for(Route[] i : routes) {
-        for( Route j : i) {
-          j.tick();
-          j.draw();
+      for(int i=0; i<3; i++) {
+        for(int j=0; j<4; j++) {
+          routes[i][j].tick();
         }
       }
 
@@ -390,16 +413,20 @@ class Junction{
         patternIndex = (patternIndex+1) % patterns.length;
         enabledPattern = patterns[patternIndex];
         enabledPattern.enabled = true;
+        print("Switched\n");
+        enabledPattern.printPattern();
         timerDisabled = constFixedTimer;
       } else {
         // Compare the priorities of each pattern
         int currentPriority = enabledPattern.getPriority() + constSwitchPriority;
+        print("!!!");
         for( Pattern pattern : patterns) {
           if( pattern.getPriority() > currentPriority) {
             enabledPattern.enabled = false;
             enabledPattern = pattern;
             enabledPattern.enabled = true;
             println("Switch");
+            timerDisabled = 2*constFrameRate;
           }
         }
       }
@@ -475,11 +502,13 @@ void draw(){
    image(imgRoad, 0, 0);
    myJunction.tick();
   
-  // if (keyPressed){
-  // for (int i = 0 ; i < 12; i++){
-  //    r[i].addCar();
-  // }
-  // }
+  if (keyPressed){
+    if(myJunction.enabled){
+      myJunction.enabled = false;
+    } else {
+      myJunction.enabled = true;
+    }
+  }
    
   //  for (int i = 0; i < 12; i++){
   //    r[i].tick();
