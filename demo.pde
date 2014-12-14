@@ -111,7 +111,7 @@ class Route{
     carsDone = new ArrayList<Car>();
     
     // TURNS - 0 = left, 1 = straight, 2 = right
-    // SIDES - 0 = left, 1 = top, 2 = right, 3 = bottom
+    // SIDES - 0 = left, 1 = bottom, 2 = right, 3 = top
     // Turn is computed, side affects draw rotation
     
     if (turn == 0){          // LEFT TURN
@@ -278,7 +278,7 @@ class Pattern{
   Pattern(int patternid, Route[][] globalRoutes) {
     enabled = false;
     routes = new Route[4];
-    // SIDES - 0 = left, 1 = top, 2 = right, 3 = bottom
+    // SIDES - 0 = left, 1 = bottom, 2 = right, 3 = top
     // From X to Y
     int[][] patterns = {{01,02,20,23},
                         {01,03,12,30},
@@ -386,6 +386,19 @@ class Junction{
     enabledPattern = patterns[ patternIndex ];
   }
 
+  void printRoutes() {
+    for(int i=0; i<3; i++) {
+      for(int j=0; j<4; j++) {
+        print(str(i) + str(j));
+        if(routes[i][j].enabled) {
+          println("  Y");
+        } else {
+          println("  N");
+        }
+      }
+    }
+  }
+
   void tick() {
     for(int i=0; i<3; i++) {
       for(int j=0; j<4; j++) {
@@ -415,6 +428,7 @@ class Junction{
         enabledPattern.enabled = true;
         print("Switched\n");
         enabledPattern.printPattern();
+        printRoutes();
         timerDisabled = constFixedTimer;
       } else {
         // Compare the priorities of each pattern
