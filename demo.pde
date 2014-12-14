@@ -9,6 +9,8 @@ static int constResY = 720;
 
 // CONSTANTS - SYSTEM
 static int constNumPatterns = 11;
+static int constFixedTimer = 5 * constFrameRate;
+static int constSwitchPriority = 100;
 static float constAdvanceRate = 0.01;
 static float constQueueSeperation = 0.025;
 
@@ -20,6 +22,7 @@ static float MATH_E = 2.71828182845904523536028747135266249775724709369995;
 // =====================================================
 
 int priorityCalc = 1;
+Boolean priorityFixed = false;
 
 // =====================================================
 //   GLOBAL OBJECTS
@@ -261,8 +264,10 @@ class Route{
 class Pattern{
   Route[] routes;
   int priority;
+  Boolean enabled;
 
   Pattern(int patternid, Route[][] globalRoutes) {
+    enabled = false;
     routes = new Route[4];
     // SIDES - 0 = left, 1 = top, 2 = right, 3 = bottom
     int[][] patterns = {{01,02,20,23},
@@ -322,6 +327,7 @@ class Pattern{
 
   void tick(){
     for(Route route : routes) {
+      route.enabled = enabled;
       route.tick();
     }
   }
@@ -330,8 +336,10 @@ class Pattern{
 class Junction{
   Pattern[] patterns;
   Route[][] routes;
+  Pattern enabledPattern;
   Boolean enabled;
   int timerDisabled;
+  int patternIndex;
 
   Junction() {
     // Setup Routes
@@ -350,11 +358,32 @@ class Junction{
 
     enabled = false;
     timerDisabled = 2 * constFrameRate;
+    patternIndex = int(random(patterns.length));
+    enabledPattern = patterns[ patternIndex ];
   }
 
   void tick() {
     if(enabled) {
-      if(timerDisabled > 0)
+      if(timerDisabled > 0) {
+        timerDisabled--;
+      } else if( priorityFixed ){
+        // Cycle through the patterns with a fixed time
+        enabledPattern.enabled = false;
+        patternIndex = (patternIndex+1) % patterns.length;
+        enabledPattern = patterns[patternIndex];
+        enabledPattern.enabled = true;
+        timerDisabled = constFixedTimer;
+      } else {
+        // Compare the priorities of each pattern
+        int currentPriority = enabledPattern.getPriority() + constSwitchPriority;
+        for( Pattern pattern : patterns) {
+          if( pattern.getPriority() > currentPriority) {
+            enabledPattern.enabled = false;
+            enabledPattern = pattern;
+            enabledPattern.enabled = true;
+          }
+        }
+      }
     }
   }
 }
@@ -398,38 +427,38 @@ void setup(){
     imgPatterns[i] = loadImage("p_" + nf(i, 2) + ".png");
   }
   
-  r = new Route[12];
+  // r = new Route[12];
  
-  r[0] = new Route(0, 0);
-  r[1] = new Route(1, 0);
-  r[2] = new Route(2, 0);
+  // r[0] = new Route(0, 0);
+  // r[1] = new Route(1, 0);
+  // r[2] = new Route(2, 0);
   
-  r[3] = new Route(0, 1);
-  r[4] = new Route(1, 1);
-  r[5] = new Route(2, 1);
+  // r[3] = new Route(0, 1);
+  // r[4] = new Route(1, 1);
+  // r[5] = new Route(2, 1);
   
-  r[6] = new Route(0, 2);
-  r[7] = new Route(1, 2);
-  r[8] = new Route(2, 2);
+  // r[6] = new Route(0, 2);
+  // r[7] = new Route(1, 2);
+  // r[8] = new Route(2, 2);
   
-  r[9] = new Route(0, 3);
-  r[10] = new Route(1, 3);
-  r[11] = new Route(2, 3); 
+  // r[9] = new Route(0, 3);
+  // r[10] = new Route(1, 3);
+  // r[11] = new Route(2, 3); 
 }
 
 // Draw function
 void draw(){
    image(imgRoad, 0, 0);
   
-  if (keyPressed){
-  for (int i = 0 ; i < 12; i++){
-     r[i].addCar();
-  }
-  }
+  // if (keyPressed){
+  // for (int i = 0 ; i < 12; i++){
+  //    r[i].addCar();
+  // }
+  // }
    
-   for (int i = 0; i < 12; i++){
-     r[i].tick();
-     r[i].draw();
-   }
+  //  for (int i = 0; i < 12; i++){
+  //    r[i].tick();
+  //    r[i].draw();
+  //  }
 }
 
