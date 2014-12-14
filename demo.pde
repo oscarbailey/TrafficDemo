@@ -66,11 +66,11 @@ class Car{
   int x, y, waitTime;
   float p;
   
-  Car(){
+  Car(float start){
     x = 0;
     y = 0;
     waitTime = 0;
-    p = 0;
+    p = start;
   }
   
   int getPriority(){
@@ -162,7 +162,11 @@ class Route{
   }
   
   void addCar(){
-    carsQueue.add(new Car());
+    if (pQueue > 0){
+      carsQueue.add(new Car(0));
+    } else {
+    carsQueue.add(new Car(pQueue));
+    }
   }
 
   int getPriority1(){
@@ -450,18 +454,29 @@ class Junction{
         enabledPattern.enable();
         timerEnabled++;
         if(timerEnabled > minimumEnable*constFrameRate){
-          // Compare the priorities of each pattern
-          int currentPriority = enabledPattern.getPriority() + switchPriority;
+          // Compare the priorities of each patter
+          int currentPriority;
+          if (timerEnabled > 5 * constFrameRate) {
+            currentPriority = 0;
+          } else {
+            currentPriority = enabledPattern.getPriority();
+          }
+          Pattern currentPattern = enabledPattern;
           for( Pattern pattern : patterns) {
             if( pattern.getPriority() > currentPriority) {
-              enabledPattern.disable();
-              timerEnabled = 0;
-              enabledPattern = pattern;
-              switchPriority = enabledPattern.getPriority();
-              println("Switch");
-              timerDisabled = switchDelay*constFrameRate;
+              currentPattern = pattern;
+              currentPriority = currentPattern.getPriority();
             }
           }
+          if(currentPattern != enabledPattern) {
+            enabledPattern.disable();
+            timerEnabled = 0;
+            enabledPattern = currentPattern;
+            switchPriority = enabledPattern.getPriority();
+            println("Switch");
+            timerDisabled = switchDelay*constFrameRate;
+          }
+
         }
       }
     }
