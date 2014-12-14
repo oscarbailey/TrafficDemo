@@ -22,7 +22,7 @@ static float MATH_E = 2.71828182845904523536028747135266249775724709369995;
 // =====================================================
 
 int priorityCalc = 1;
-Boolean priorityFixed = false;
+Boolean priorityFixed = true;
 
 // =====================================================
 //   GLOBAL OBJECTS
@@ -227,6 +227,13 @@ class Route{
       c.p += constAdvanceRate;
     }
     
+    // OSCAR'S CAR ADDING CODE, please move if this is in the wrong place
+    int expectedCars = int(get_cars( 1.0 / constFrameRate )); // Expect 1 car every second
+    for(int i=0; i<expectedCars; i++) {
+      addCar();
+    }
+    // END OF CODE
+
     checkCars();
   }
   
@@ -328,7 +335,6 @@ class Pattern{
   void tick(){
     for(Route route : routes) {
       route.enabled = enabled;
-      route.tick();
     }
   }
 }
@@ -364,6 +370,18 @@ class Junction{
 
   void tick() {
     if(enabled) {
+
+      for(Route[] i : routes) {
+        for( Route j : i) {
+          j.tick();
+          j.draw();
+        }
+      }
+
+      for( Pattern pattern : patterns) {
+        pattern.tick();
+      }
+
       if(timerDisabled > 0) {
         timerDisabled--;
       } else if( priorityFixed ){
@@ -381,6 +399,7 @@ class Junction{
             enabledPattern.enabled = false;
             enabledPattern = pattern;
             enabledPattern.enabled = true;
+            println("Switch");
           }
         }
       }
@@ -412,6 +431,8 @@ int fac(int n) {
   return total;
 }
 
+Junction myJunction;
+
 // Setup function
 void setup(){
   size(constResX, constResY);
@@ -427,6 +448,9 @@ void setup(){
     imgPatterns[i] = loadImage("p_" + nf(i, 2) + ".png");
   }
   
+  myJunction = new Junction();
+  myJunction.enabled = true;
+
   // r = new Route[12];
  
   // r[0] = new Route(0, 0);
@@ -449,6 +473,7 @@ void setup(){
 // Draw function
 void draw(){
    image(imgRoad, 0, 0);
+   myJunction.tick();
   
   // if (keyPressed){
   // for (int i = 0 ; i < 12; i++){
