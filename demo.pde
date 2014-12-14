@@ -9,7 +9,7 @@ static int constResY = 720;
 
 // CONSTANTS - SYSTEM
 static int constNumPatterns = 11;
-static int constFixedTimer = 5 * constFrameRate;
+static int constFixedTimer = 3 * constFrameRate;
 static float constAdvanceRate = 0.01;
 static float constQueueSeperation = 0.025;
 
@@ -201,7 +201,7 @@ class Route{
   int getPriority3(){
     // Wait time altered in some way before being used here
     // This function evaluates the product of (wait time squared)
-    int total = 0;
+    int total = 1;
     int n = carsQueue.size();
     for(int i=0; i<n; i++){
       Car c = carsQueue.get(i);
@@ -385,6 +385,7 @@ class Junction{
   Pattern enabledPattern;
   Boolean enabled;
   int timerDisabled;
+  int timerFixed;
   int timerEnabled;
   int patternIndex;
   int switchPriority;
@@ -410,6 +411,7 @@ class Junction{
     patternIndex = int(random(patterns.length));
     enabledPattern = patterns[ patternIndex ];
     switchPriority = 0;
+    timerFixed = constFixedTimer;
   }
 
   void printRoutes() {
@@ -484,15 +486,20 @@ class Junction{
       if(timerDisabled > 0) {
         timerDisabled--;
       } else if( priorityFixed ){
-        // Cycle through the patterns with a fixed time
-        enabledPattern.disable();
-        patternIndex = (patternIndex+1) % patterns.length;
-        enabledPattern = patterns[patternIndex];
         enabledPattern.enable();
-        print("Switched\n");
         enabledPattern.printPattern();
         printRoutes();
-        timerDisabled = constFixedTimer;
+        if(timerFixed < 0) {
+          // Cycle through the patterns with a fixed time
+          patternIndex = (patternIndex+1) % patterns.length;
+          enabledPattern.disable();
+          enabledPattern = patterns[patternIndex];
+          print("Switched\n");
+          timerFixed = constFixedTimer;
+          timerDisabled = switchDelay * constFrameRate;
+        } else {
+          timerFixed--;
+        }
       } else {
         enabledPattern.enable();
         timerEnabled++;
