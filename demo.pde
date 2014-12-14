@@ -24,7 +24,7 @@ int priorityCalc = 2;
 int switchDelay = 1;
 int minimumEnable = 2;
 float rate = 0.5;
-Boolean priorityFixed = false;
+Boolean priorityFixed = true;
 
 // =====================================================
 //   GLOBAL OBJECTS
@@ -104,6 +104,8 @@ class Route{
   ArrayList<Car> carsDone;
   boolean enabled;
   float pQueue;        // PROGRESS POINT AT WHICH CAR MUST QUEUE#
+  float totalWaitTime;
+  int totalDoneCars;
   int side;
   
   Route(int turn, int rot){
@@ -141,6 +143,8 @@ class Route{
     }
     
     pQueue = points[1].p;    // SET INITIAL Q POINT TO EDGE OF APPROACH
+    totalWaitTime = 0;
+    totalDoneCars = 0;
   }
   
   void setCarPos(Car c){
@@ -269,7 +273,9 @@ class Route{
      for (int i = 0; i < carsDone.size(); i++){
        Car c = carsDone.get(i);
        if (c.p > 1){
-         carsDone.remove(i);
+          totalWaitTime += c.waitTime / constFrameRate;
+          totalDoneCars++;
+          carsDone.remove(i);
        }
      }
   }
@@ -419,6 +425,34 @@ class Junction{
     }
   }
 
+  void drawAverageWaitTimes() {
+    float totalWaitTime = 0;
+    int totalDoneCars = 0;
+    for(int i=0; i<3; i++) {
+      for(int j=0; j<4; j++) {
+        // Draw stuff
+        totalWaitTime += routes[i][j].totalWaitTime;
+        totalDoneCars += routes[i][j].totalDoneCars;
+        float averageWaitTime = routes[i][j].totalWaitTime / routes[i][j].totalDoneCars;
+        text("Route[" + i + "][" + j + "] = " + str(averageWaitTime) ,480,10 + ((4*i)+j)*20);
+      }
+    }
+
+    text("Average Car Wait Time: " + (totalWaitTime/totalDoneCars), 480, 600);
+  }
+
+  void drawCurrentPriorityMethod() {
+    text("Current Priority Method: " + (priorityCalc+1), 20, 20);
+    text("Current Rate:            " + rate, 20, 40);
+    String answer;
+    if(priorityFixed){
+      answer = "Yes";
+    } else {
+      answer = "No";
+    }
+    text("Fixed?                   " + answer, 20, 60);
+  }
+
   void tick() {
     for( Pattern pattern : patterns) {
       pattern.draw();
@@ -480,6 +514,8 @@ class Junction{
         }
       }
     }
+    drawAverageWaitTimes();
+    drawCurrentPriorityMethod();
   }
 }
 
@@ -558,17 +594,28 @@ void draw(){
 }
 
 void keyPressed() {
-  if (keyPressed){
-    switch (key){
-      case '+':
-        rate += 0.1;
-        break;
-      case '-':
-        if (rate > 0.1) rate -= 0.1;
-        break;
-      case ']':
-        priorityCalc += 1;
-        priorityCalc = priorityCalc % 4;
-    }
+  switch (key){
+    case '+':
+      rate += 0.1;
+      break;
+    case '-':
+      if (rate > 0.1) rate -= 0.1;
+      break;
+    case ']':
+      priorityCalc += 1;
+      priorityCalc = priorityCalc % 4;
+      break;
+    case 'f':
+      if (priorityFixed) {
+        priorityFixed = false;
+      } else {
+        priorityFixed = true;
+      }
   }
+  resetJunction();
+}
+
+void resetJunction() {
+  myJunction = new Junction();
+  myJunction.enabled = true;
 }
