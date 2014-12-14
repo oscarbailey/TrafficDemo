@@ -435,10 +435,14 @@ class Junction{
         totalDoneCars += routes[i][j].totalDoneCars;
         float averageWaitTime = routes[i][j].totalWaitTime / routes[i][j].totalDoneCars;
         text("Route[" + i + "][" + j + "] = " + str(averageWaitTime) ,480,10 + ((4*i)+j)*20);
+        println("Route[" + i + "][" + j + "] = " + str(averageWaitTime));
       }
     }
 
     text("Average Car Wait Time: " + (totalWaitTime/totalDoneCars), 480, 600);
+
+    println("Average Car Wait Time: " + (totalWaitTime/totalDoneCars));
+
   }
 
   void drawCurrentPriorityMethod() {
@@ -451,6 +455,11 @@ class Junction{
       answer = "No";
     }
     text("Fixed?                   " + answer, 20, 60);
+    
+    println("Priority Method: " + (priorityCalc+1));
+    println("Rate:  " + rate);
+    println("Fixed: " + answer);
+
   }
 
   void tick() {
@@ -514,6 +523,7 @@ class Junction{
         }
       }
     }
+    println("-------------------------------");
     drawAverageWaitTimes();
     drawCurrentPriorityMethod();
   }
